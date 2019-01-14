@@ -14,6 +14,15 @@ param
     [Switch]$DisableSSLVerify
 )
 
+#check to see if service is already installed. If it is, exit immediately
+$serviceInstalled = Get-Service CyberArkVaultConjurSynchronizer
+
+if($null -ne $serviceInstalled)
+{
+    Write-Host "CyberArk Vault Conjur Synchronizer already installed. Nothing to do."
+    exit
+}
+
 # Get Script Location
 $ScriptLocation = Split-Path -Parent $MyInvocation.MyCommand.Path
 
