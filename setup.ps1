@@ -577,7 +577,7 @@ catch {
 #Check to see if conjur host platform exists and upload if it doesn't
 try {
     $conjurSyncSafeUri = $API_Safes + "?query=ConjurSync"
-    if ($null -eq $(Get-VaultObject $conjurSyncSafeUri )) {
+    if ($null -ne $(Get-VaultObject $conjurSyncSafeUri )) {
         #Safe does not exist, so we need to create one
 
         #create the JSON Body to upload the platform with
