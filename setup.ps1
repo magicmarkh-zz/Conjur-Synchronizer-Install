@@ -809,7 +809,7 @@ if(($synchronizerInstallPath = Read-Host -Prompt "Specify Vault-Conjur Synchroni
 #specify Conjur DNS Name
 Do{$conjurServerDNS = Read-Host -Prompt "Conjur server hostname (and optional port in the format of hostname[:port])"}Until($conjurServerDNS.Length -ge 1)
 #Specify CyberArk Vault Name
-if(($vaultName = Read-Host -Prompt "Enter the CyberArk Vault Name [EPV]") -eq ""){$vaultName="EPV"}else{$vaultName}
+if(($vaultName = Read-Host -Prompt "Enter the CyberArk Vault Name [epv]") -eq ""){$vaultName="epv"}else{$vaultName}
 #specify IP Address of EPV Vault
 Do{$vaultIPAddress = Read-Host -Prompt "Enter the CyberArk Vault IP Address"}Until($vaultIPAddress -match '^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')
 # Specify Vault port. By default 1858 

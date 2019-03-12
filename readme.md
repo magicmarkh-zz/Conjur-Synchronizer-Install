@@ -25,9 +25,10 @@ This script will install the CyberArk Vault Conjur Synchronizer service
 3. Conjur Users's Password is the password for the account mentioned in step 2
 4. Conjur Install Path. This defaults to c:\Program Files, and can be changed. Press enter to accept the default path.
 5. CyberArk vault name is a friendly name for your EPV Vault. Press enter to accept the default value.
-6. IP Address of EPV vault is the IP address of the primary vault machine.
-7. Vault Port is the port the CyberArk EPV vault accept communication traffic on.
-8. Conjur Account name is the Account name specified in conjur. This is defined during Conjur setup. If you do not know the account name, run "conjur list" from the conjur-cli container to find the account name. It is the first word/name for all policies, variables, etc... for the account.
+6. Conjur server hostname is the DNS name of your conjur installation. This must match the certificate for your Conjur instance. Do not include https. Only include the port if it is something other than 443. Ex: If your Conjur server is named acme-conjur and it answers on 443, you would only enter 'acme-conjur'. If it answers on port 445, you would enter acme-conjur:445"
+7. IP Address of EPV vault is the IP address of the primary vault machine.
+8. Vault Port is the port the CyberArk EPV vault accept communication traffic on.
+9. Conjur Account name is the Account name specified in conjur. This is defined during Conjur setup. If you do not know the account name, run "conjur list" from the conjur-cli container to find the account name. It is the first word/name for all policies, variables, etc... for the account.
 
 ## Limitations
 
