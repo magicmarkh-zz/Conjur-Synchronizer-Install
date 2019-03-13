@@ -30,6 +30,10 @@ This script will install the CyberArk Vault Conjur Synchronizer service
 8. Vault Port is the port the CyberArk EPV vault accept communication traffic on.
 9. Conjur Account name is the Account name specified in conjur. This is defined during Conjur setup. If you do not know the account name, run "conjur list" from the conjur-cli container to find the account name. It is the first word/name for all policies, variables, etc... for the account.
 
+## Known Issues
+
+- Some older versions of PowerShell will not extract the installer although the shell will indicate it has been extracted. Once the script stops to ask for information, if the zip file has not been sucessfully extracted, you shoudl manually extract it at this time.
+
 ## Limitations
 
 - Does not check for already existing Conjur Host in EPV
