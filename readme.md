@@ -15,8 +15,8 @@ This script will install the CyberArk Vault Conjur Synchronizer service
 3. Open an administrative PowerShell prompt and navigate to the directory created in step 1
 4. If ConjurHost platform already exists in your environment, ensure that the platform is active
 5. run .\setup.ps1
-   i. If you do not have valid certificates, use the -DisableVerify switch
-   ii. Specify the CyberArk EPV Web portal address with -PVWAURL httsp://server.yourcompany.com
+   i. If you do not have valid certificates, use the -DisableSSLVerify switch
+   ii. Specify the CyberArk EPV Web portal address with -PVWAURL https://server.yourcompany.com
 
 ## Information to be entered
 
