@@ -17,8 +17,7 @@ param
 #check to see if service is already installed. If it is, exit immediately
 $serviceInstalled = Get-Service CyberArkVaultConjurSynchronizer
 
-if($null -ne $serviceInstalled)
-{
+if ($null -ne $serviceInstalled) {
     Write-Host "CyberArk Vault Conjur Synchronizer already installed. Nothing to do."
     exit
 }
@@ -50,8 +49,6 @@ $API_Accounts = $URL_PVWA_Base_API + "/accounts"
 # Initialize Script Variables
 # ---------------------------
 $g_LogonHeader = ""
-
-
 
 #region [Script Functions]
 Function Get-IniContent {  
@@ -108,31 +105,28 @@ Function Get-IniContent {
     [CmdletBinding()]  
     Param(  
         [ValidateNotNullOrEmpty()]  
-        [ValidateScript({(Test-Path $_) -and ((Get-Item $_).Extension -eq ".ini")})]  
-        [Parameter(ValueFromPipeline=$True,Mandatory=$True)]  
+        [ValidateScript( { (Test-Path $_) -and ((Get-Item $_).Extension -eq ".ini") })]  
+        [Parameter(ValueFromPipeline = $True, Mandatory = $True)]  
         [string]$FilePath  
     )  
       
     Begin  
-        {Write-Verbose "$($MyInvocation.MyCommand.Name):: Function started"}  
+    { Write-Verbose "$($MyInvocation.MyCommand.Name):: Function started" }  
           
-    Process  
-    {  
+    Process {  
         Write-Verbose "$($MyInvocation.MyCommand.Name):: Processing file: $Filepath"  
               
         $ini = @{}  
-        switch -regex -file $FilePath  
-        {  
-            "^\[(.+)\]$" # Section  
-            {  
+        switch -regex -file $FilePath {  
+            "^\[(.+)\]$" {
+                # Section    
                 $section = $matches[1]  
                 $ini[$section] = @{}  
                 $CommentCount = 0  
             }  
-            "^(;.*)$" # Comment  
-            {  
-                if (!($section))  
-                {  
+            "^(;.*)$" {
+                # Comment    
+                if (!($section)) {  
                     $section = "No-Section"  
                     $ini[$section] = @{}  
                 }  
@@ -141,14 +135,13 @@ Function Get-IniContent {
                 $name = "Comment" + $CommentCount  
                 $ini[$section][$name] = $value  
             }   
-            "(.+?)\s*=\s*(.*)" # Key  
-            {  
-                if (!($section))  
-                {  
+            "(.+?)\s*=\s*(.*)" {
+                # Key    
+                if (!($section)) {  
                     $section = "No-Section"  
                     $ini[$section] = @{}  
                 }  
-                $name,$value = $matches[1..2]  
+                $name, $value = $matches[1..2]  
                 $ini[$section][$name] = $value  
             }  
         }  
@@ -157,7 +150,7 @@ Function Get-IniContent {
     }  
           
     End  
-        {Write-Verbose "$($MyInvocation.MyCommand.Name):: Function ended"}  
+    { Write-Verbose "$($MyInvocation.MyCommand.Name):: Function ended" }  
 }
 
 Function Out-IniFile {  
@@ -244,52 +237,50 @@ Function Out-IniFile {
     Param(  
         [switch]$Append,  
           
-        [ValidateSet("Unicode","UTF7","UTF8","UTF32","ASCII","BigEndianUnicode","Default","OEM")]  
+        [ValidateSet("Unicode", "UTF7", "UTF8", "UTF32", "ASCII", "BigEndianUnicode", "Default", "OEM")]  
         [Parameter()]  
         [string]$Encoding = "Unicode",  
  
           
         [ValidateNotNullOrEmpty()]  
         [ValidatePattern('^([a-zA-Z]\:)?.+\.ini$')]  
-        [Parameter(Mandatory=$True)]  
+        [Parameter(Mandatory = $True)]  
         [string]$FilePath,  
           
         [switch]$Force,  
           
         [ValidateNotNullOrEmpty()]  
-        [Parameter(ValueFromPipeline=$True,Mandatory=$True)]  
+        [Parameter(ValueFromPipeline = $True, Mandatory = $True)]  
         [Hashtable]$InputObject,  
           
         [switch]$Passthru  
     )  
       
     Begin  
-        {Write-Verbose "$($MyInvocation.MyCommand.Name):: Function started"}  
+    { Write-Verbose "$($MyInvocation.MyCommand.Name):: Function started" }  
           
-    Process  
-    {  
+    Process {  
         Write-Verbose "$($MyInvocation.MyCommand.Name):: Writing to file: $Filepath"  
           
-        if ($append) {$outfile = Get-Item $FilePath}  
-        else {$outFile = New-Item -ItemType file -Path $Filepath -Force:$Force}  
-        if (!($outFile)) {Throw "Could not create File"}  
-        foreach ($i in $InputObject.keys)  
-        {  
-            if (!($($InputObject[$i].GetType().Name) -eq "Hashtable"))  
-            {  
+        if ($append) { $outfile = Get-Item $FilePath }  
+        else { $outFile = New-Item -ItemType file -Path $Filepath -Force:$Force }  
+        if (!($outFile)) { Throw "Could not create File" }  
+        foreach ($i in $InputObject.keys) {  
+            if (!($($InputObject[$i].GetType().Name) -eq "Hashtable")) {  
                 #No Sections  
                 Write-Verbose "$($MyInvocation.MyCommand.Name):: Writing key: $i"  
                 Add-Content -Path $outFile -Value "$i=$($InputObject[$i])" -Encoding $Encoding  
-            } else {  
+            }
+            else {  
                 #Sections  
                 Write-Verbose "$($MyInvocation.MyCommand.Name):: Writing Section: [$i]"  
                 Add-Content -Path $outFile -Value "[$i]" -Encoding $Encoding  
-                Foreach ($j in $($InputObject[$i].keys | Sort-Object))  
-                {  
+                Foreach ($j in $($InputObject[$i].keys | Sort-Object)) {  
                     if ($j -match "^Comment[\d]+") {  
                         Write-Verbose "$($MyInvocation.MyCommand.Name):: Writing comment: $j"  
                         Add-Content -Path $outFile -Value "$($InputObject[$i][$j])" -Encoding $Encoding  
-                    } else {  
+                    }
+                    else {  
                         Write-Verbose "$($MyInvocation.MyCommand.Name):: Writing key: $j"  
                         Add-Content -Path $outFile -Value "$j=$($InputObject[$i][$j])" -Encoding $Encoding  
                     }  
@@ -299,19 +290,19 @@ Function Out-IniFile {
             }  
         }  
         Write-Verbose "$($MyInvocation.MyCommand.Name):: Finished Writing to file: $path"  
-        if ($PassThru) {Return $outFile}  
+        if ($PassThru) { Return $outFile }  
     }  
           
     End  
-        {Write-Verbose "$($MyInvocation.MyCommand.Name):: Function ended"}  
+    { Write-Verbose "$($MyInvocation.MyCommand.Name):: Function ended" }  
 } 
 function Test-CommandExists {
     Param ($command)
     $oldPreference = $ErrorActionPreference
     $ErrorActionPreference = 'stop'
-    try {if (Get-Command $command) {RETURN $true}}
-    Catch {Write-Host "$command does not exist"; RETURN $false}
-    Finally {$ErrorActionPreference = $oldPreference}
+    try { if (Get-Command $command) { RETURN $true } }
+    Catch { Write-Host "$command does not exist"; RETURN $false }
+    Finally { $ErrorActionPreference = $oldPreference }
 }
 
 function Add-LogMsg {
@@ -461,18 +452,16 @@ function Get-RandomPassword() {
 
     Param(
     
-    [int]$length=32
+        [int]$length = 32
     
     )
     
-     $sourcedata=$null
-     for($a=48; $a -le 110; $a++)
-     {
-        $sourcedata+=,[char][byte]$a
-     }
-    for ($loop=1; $loop -le $length; $loop++)
-    {
-        $TempPassword+=($sourcedata | Get-Random)
+    $sourcedata = $null
+    for ($a = 48; $a -le 110; $a++) {
+        $sourcedata += , [char][byte]$a
+    }
+    for ($loop = 1; $loop -le $length; $loop++) {
+        $TempPassword += ($sourcedata | Get-Random)
     }
     return $TempPassword
 }
@@ -481,22 +470,21 @@ function Get-RandomPassword() {
 #endregion
 
 # Check if to disable SSL verification
-If($DisableSSLVerify)
-{
-try {
-    #Write-Warning "It is not Recommended to disable SSL verification" -WarningAction Inquire
-    # Using Proxy Default credentials if the Sevrer needs Proxy credentials
-     [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
-  #  # Using TLS 1.2 as security protocol verification
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor [System.Net.SecurityProtocolType]::Tls11
- #   # Disable SSL Verification
-    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $DisableSSLVerify }
-}
-catch {
-    Add-LogMsg -Type Error -MSG "Could not change SSL validation"
-    Add-LogMsg -Type Error -MSG $_.Exception
-    exit
-}
+If ($DisableSSLVerify) {
+    try {
+        #Write-Warning "It is not Recommended to disable SSL verification" -WarningAction Inquire
+        # Using Proxy Default credentials if the Sevrer needs Proxy credentials
+        [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+        #  # Using TLS 1.2 as security protocol verification
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12 -bor [System.Net.SecurityProtocolType]::Tls11
+        #   # Disable SSL Verification
+        [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $DisableSSLVerify }
+    }
+    catch {
+        Add-LogMsg -Type Error -MSG "Could not change SSL validation"
+        Add-LogMsg -Type Error -MSG $_.Exception
+        exit
+    }
 }
 
 If ((Test-CommandExists Invoke-RestMethod) -eq $false) {
@@ -583,7 +571,7 @@ try {
         #Safe does not exist, so we need to create one
 
         #create the JSON Body to upload the platform with
-        $newSafeBody = @{ safe= @{Description="Conjur Synchronizer Safe"; ManagingCPM="PasswordManager"; SafeName="ConjurSync"; OLACEnabled=$false }} | ConvertTo-JSON
+        $newSafeBody = @{ safe = @{Description = "Conjur Synchronizer Safe"; ManagingCPM = "PasswordManager"; SafeName = "ConjurSync"; OLACEnabled = $false } } | ConvertTo-JSON
         if ($null -ne $(Invoke-Rest -Command Post -URI $API_Safes -Header $g_LogonHeader -Body $newSafeBody)) {
                     
             Add-LogMsg -type Info -MSG "ConjurSync Safe successfully created."
@@ -612,136 +600,175 @@ try {
     $safeMembershipExists = $false
 
     #loop through JSON response to see if the vault user from above is already a member
-    foreach ($safeMember in $safeMemberResult.members)    
-    {
+    foreach ($safeMember in $safeMemberResult.members) {
         if ($safeMember.UserName -eq $vaultSyncUserName)
-        {$safeMembershipExists = $true}
+        { $safeMembershipExists = $true }
     }
 
-    if($safeMembershipExists -eq $false)
-    {
+    if ($safeMembershipExists -eq $false) {
         #Add the safe member
         $newSafeMemberBody = @{member =
-            @{MemberName = $vaultSyncUserName
-              SearchIn = "Vault"
-              MembershipExpirationDate = ""
-              Permissions = @(
-                               @{Key = "UseAccounts"
-              Value = $true},
-              @{Key = "RetrieveAccounts"
-              Value = $true},
-              @{Key = "ListAccounts"
-              Value = $true},
-              @{Key = "AddAccounts"
-              Value = $true},
-              @{Key = "UpdateAccountContent"
-              Value = $true},
-              @{Key = "UpdateAccountProperties"
-              Value = $true},
-              @{Key = "InitiateCPMAccountManagementOperations"
-              Value = $true},
-              @{Key = "SpecifyNextAccountContent"
-              Value = $false},
-              @{Key = "RenameAccounts"
-              Value = $false},
-              @{Key = "DeleteAccounts"
-              Value = $false},
-              @{Key = "UnlockAccounts"
-              Value = $false},
-              @{Key = "ManageSafe"
-              Value = $false},
-              @{Key = "ManageSafeMembers"
-              Value = $false},
-              @{Key = "BackupSafe"
-              Value = $false},
-              @{Key = "ViewAuditLog"
-              Value = $false},
-              @{Key = "ViewSafeMembers"
-              Value = $false},
-              @{Key = "RequestsAuthorizationLevel"
-              Value = 1},
-              @{Key = "AccessWithoutConfirmation"
-              Value = $true},
-              @{Key = "CreateFolders"
-              Value = $true},
-              @{Key = "DeleteFolders"
-              Value = $true},
-              @{Key = "MoveAccountsAndFolders"
-              Value = $false}
-              )
+            @{MemberName                 = $vaultSyncUserName
+                SearchIn                 = "Vault"
+                MembershipExpirationDate = ""
+                Permissions              = @(
+                    @{Key     = "UseAccounts"
+                        Value = $true
+                    },
+                    @{Key     = "RetrieveAccounts"
+                        Value = $true
+                    },
+                    @{Key     = "ListAccounts"
+                        Value = $true
+                    },
+                    @{Key     = "AddAccounts"
+                        Value = $true
+                    },
+                    @{Key     = "UpdateAccountContent"
+                        Value = $true
+                    },
+                    @{Key     = "UpdateAccountProperties"
+                        Value = $true
+                    },
+                    @{Key     = "InitiateCPMAccountManagementOperations"
+                        Value = $true
+                    },
+                    @{Key     = "SpecifyNextAccountContent"
+                        Value = $false
+                    },
+                    @{Key     = "RenameAccounts"
+                        Value = $false
+                    },
+                    @{Key     = "DeleteAccounts"
+                        Value = $false
+                    },
+                    @{Key     = "UnlockAccounts"
+                        Value = $false
+                    },
+                    @{Key     = "ManageSafe"
+                        Value = $false
+                    },
+                    @{Key     = "ManageSafeMembers"
+                        Value = $false
+                    },
+                    @{Key     = "BackupSafe"
+                        Value = $false
+                    },
+                    @{Key     = "ViewAuditLog"
+                        Value = $false
+                    },
+                    @{Key     = "ViewSafeMembers"
+                        Value = $false
+                    },
+                    @{Key     = "RequestsAuthorizationLevel"
+                        Value = 1
+                    },
+                    @{Key     = "AccessWithoutConfirmation"
+                        Value = $true
+                    },
+                    @{Key     = "CreateFolders"
+                        Value = $true
+                    },
+                    @{Key     = "DeleteFolders"
+                        Value = $true
+                    },
+                    @{Key     = "MoveAccountsAndFolders"
+                        Value = $false
+                    }
+                )
             }
-            } | ConvertTo-Json -Depth 3
+        } | ConvertTo-Json -Depth 3
             
-            $addSafeMemberUri = $API_Safes + "/ConjurSync/Members"
-            if ($null -ne $(Invoke-Rest -Command Post -URI $addSafeMemberUri -Header $g_LogonHeader -Body $newSafeMemberBody)) {
+        $addSafeMemberUri = $API_Safes + "/ConjurSync/Members"
+        if ($null -ne $(Invoke-Rest -Command Post -URI $addSafeMemberUri -Header $g_LogonHeader -Body $newSafeMemberBody)) {
                     
-                Add-LogMsg -type Info -MSG "User $($vaultSyncUserName) permissions successfully created for ConjurSync Safe."
-            } 
-            else {
-                Add-LogMsg -type Error -MSG "User $($vaultSyncUserName) could not be added to ConjurSync Safe."
-            }
+            Add-LogMsg -type Info -MSG "User $($vaultSyncUserName) permissions successfully created for ConjurSync Safe."
+        } 
+        else {
+            Add-LogMsg -type Error -MSG "User $($vaultSyncUserName) could not be added to ConjurSync Safe."
+        }
     }
-    else
-    {
+    else {
         #update safe permissions to ensure Sync User has appropriate permissions
         $updateSafeMemberBody = @{member =
             @{
-              MembershipExpirationDate = ""
-              Permissions = @(
-                               @{Key = "UseAccounts"
-              Value = $true},
-              @{Key = "RetrieveAccounts"
-              Value = $true},
-              @{Key = "ListAccounts"
-              Value = $true},
-              @{Key = "AddAccounts"
-              Value = $true},
-              @{Key = "UpdateAccountContent"
-              Value = $true},
-              @{Key = "UpdateAccountProperties"
-              Value = $true},
-              @{Key = "InitiateCPMAccountManagementOperations"
-              Value = $true},
-              @{Key = "SpecifyNextAccountContent"
-              Value = $false},
-              @{Key = "RenameAccounts"
-              Value = $false},
-              @{Key = "DeleteAccounts"
-              Value = $false},
-              @{Key = "UnlockAccounts"
-              Value = $false},
-              @{Key = "ManageSafe"
-              Value = $false},
-              @{Key = "ManageSafeMembers"
-              Value = $false},
-              @{Key = "BackupSafe"
-              Value = $false},
-              @{Key = "ViewAuditLog"
-              Value = $false},
-              @{Key = "ViewSafeMembers"
-              Value = $false},
-              @{Key = "RequestsAuthorizationLevel"
-              Value = 1},
-              @{Key = "AccessWithoutConfirmation"
-              Value = $true},
-              @{Key = "CreateFolders"
-              Value = $true},
-              @{Key = "DeleteFolders"
-              Value = $true},
-              @{Key = "MoveAccountsAndFolders"
-              Value = $false}
-              )
+                MembershipExpirationDate = ""
+                Permissions              = @(
+                    @{Key     = "UseAccounts"
+                        Value = $true
+                    },
+                    @{Key     = "RetrieveAccounts"
+                        Value = $true
+                    },
+                    @{Key     = "ListAccounts"
+                        Value = $true
+                    },
+                    @{Key     = "AddAccounts"
+                        Value = $true
+                    },
+                    @{Key     = "UpdateAccountContent"
+                        Value = $true
+                    },
+                    @{Key     = "UpdateAccountProperties"
+                        Value = $true
+                    },
+                    @{Key     = "InitiateCPMAccountManagementOperations"
+                        Value = $true
+                    },
+                    @{Key     = "SpecifyNextAccountContent"
+                        Value = $false
+                    },
+                    @{Key     = "RenameAccounts"
+                        Value = $false
+                    },
+                    @{Key     = "DeleteAccounts"
+                        Value = $false
+                    },
+                    @{Key     = "UnlockAccounts"
+                        Value = $false
+                    },
+                    @{Key     = "ManageSafe"
+                        Value = $false
+                    },
+                    @{Key     = "ManageSafeMembers"
+                        Value = $false
+                    },
+                    @{Key     = "BackupSafe"
+                        Value = $false
+                    },
+                    @{Key     = "ViewAuditLog"
+                        Value = $false
+                    },
+                    @{Key     = "ViewSafeMembers"
+                        Value = $false
+                    },
+                    @{Key     = "RequestsAuthorizationLevel"
+                        Value = 1
+                    },
+                    @{Key     = "AccessWithoutConfirmation"
+                        Value = $true
+                    },
+                    @{Key     = "CreateFolders"
+                        Value = $true
+                    },
+                    @{Key     = "DeleteFolders"
+                        Value = $true
+                    },
+                    @{Key     = "MoveAccountsAndFolders"
+                        Value = $false
+                    }
+                )
             }
-            } | ConvertTo-Json -Depth 3
+        } | ConvertTo-Json -Depth 3
             
-            $updateSafeMemberUri = $API_Safes + "/ConjurSync/Members/" + $vaultSyncUserName
-            if ($null -ne $(Invoke-Rest -Command Post -URI $updateSafeMemberUri -Header $g_LogonHeader -Body $updateSafeMemberBody)) {
+        $updateSafeMemberUri = $API_Safes + "/ConjurSync/Members/" + $vaultSyncUserName
+        if ($null -ne $(Invoke-Rest -Command Post -URI $updateSafeMemberUri -Header $g_LogonHeader -Body $updateSafeMemberBody)) {
                     
-                Add-LogMsg -type Info -MSG "User $($vaultSyncUserName) permissions successfully updated for ConjurSync Safe."
-            } 
-            else {
-                Add-LogMsg -type Error -MSG "User $($vaultSyncUserName) could not be updated for ConjurSync Safe."
-            }
+            Add-LogMsg -type Info -MSG "User $($vaultSyncUserName) permissions successfully updated for ConjurSync Safe."
+        } 
+        else {
+            Add-LogMsg -type Error -MSG "User $($vaultSyncUserName) could not be updated for ConjurSync Safe."
+        }
     }
 }
 catch {
@@ -750,13 +777,97 @@ catch {
 
 #endregion
 
+#region [Update permissions on PVWA Config safe]
+if ($safeMembershipExists -eq $false) {
+    #Add the safe member
+    $newSafeMemberBody = @{member =
+        @{MemberName                 = $vaultSyncUserName
+            SearchIn                 = "Vault"
+            MembershipExpirationDate = ""
+            Permissions              = @(
+                @{Key     = "UseAccounts"
+                    Value = $false
+                },
+                @{Key     = "RetrieveAccounts"
+                    Value = $true
+                },
+                @{Key     = "ListAccounts"
+                    Value = $true
+                },
+                @{Key     = "AddAccounts"
+                    Value = $false
+                },
+                @{Key     = "UpdateAccountContent"
+                    Value = $false
+                },
+                @{Key     = "UpdateAccountProperties"
+                    Value = $false
+                },
+                @{Key     = "InitiateCPMAccountManagementOperations"
+                    Value = $false
+                },
+                @{Key     = "SpecifyNextAccountContent"
+                    Value = $false
+                },
+                @{Key     = "RenameAccounts"
+                    Value = $false
+                },
+                @{Key     = "DeleteAccounts"
+                    Value = $false
+                },
+                @{Key     = "UnlockAccounts"
+                    Value = $false
+                },
+                @{Key     = "ManageSafe"
+                    Value = $false
+                },
+                @{Key     = "ManageSafeMembers"
+                    Value = $false
+                },
+                @{Key     = "BackupSafe"
+                    Value = $false
+                },
+                @{Key     = "ViewAuditLog"
+                    Value = $false
+                },
+                @{Key     = "ViewSafeMembers"
+                    Value = $false
+                },
+                @{Key     = "RequestsAuthorizationLevel"
+                    Value = 1
+                },
+                @{Key     = "AccessWithoutConfirmation"
+                    Value = $true
+                },
+                @{Key     = "CreateFolders"
+                    Value = $false
+                },
+                @{Key     = "DeleteFolders"
+                    Value = $false
+                },
+                @{Key     = "MoveAccountsAndFolders"
+                    Value = $false
+                }
+            )
+        }
+    } | ConvertTo-Json -Depth 3
+            
+    $addSafeMemberUri = $API_Safes + "/PVWAConfig/Members"
+    if ($null -ne $(Invoke-Rest -Command Post -URI $addSafeMemberUri -Header $g_LogonHeader -Body $newSafeMemberBody)) {
+                    
+        Add-LogMsg -type Info -MSG "User $($vaultSyncUserName) permissions successfully created for PVWAConfig Safe."
+    } 
+    else {
+        Add-LogMsg -type Error -MSG "User $($vaultSyncUserName) could not be added to PVWAConfig Safe."
+    }
+}
+#endregion
 
 #region [Locate and Expand Install Package Archive]
 #installation package title must contain Vault Conjur Synchronizer and be a .zip file
     
 $installPackageZip = Get-ChildItem -Path $ScriptLocation -Name *.zip
-if ($null -ne $installPackageZip)
-{
+if ($null -ne $installPackageZip) {
     Expand-Archive $installPackageZip
     Add-LogMsg -type Info -MSG "Vault Conjur Synchronizer install package located and successfully extracted."
 }
@@ -779,7 +890,7 @@ try {
         $base64ConjurHostPlatform = [Convert]::ToBase64String([IO.File]::ReadAllBytes($conjurHostPlatformFile.DirectoryName + "/" + $conjurHostPlatformFile.Name))
 
         #create the JSON Body to upload the platform with
-        $createPlatformBody = @{ ImportFile=$base64ConjurHostPlatform } | ConvertTo-Json
+        $createPlatformBody = @{ ImportFile = $base64ConjurHostPlatform } | ConvertTo-Json
         if ($null -ne $(Invoke-Rest -Command Post -URI $API_Platforms_Import -Header $g_LogonHeader -Body $createPlatformBody)) {
                     
             Add-LogMsg -type Info -MSG "Conjur Host Platform successfully created."
@@ -803,26 +914,26 @@ catch {
 Write-Host ""
 
 #Specify Conjur Username
-if(($conjurUser = Read-Host -Prompt "Enter the Conjur username with permissions to add a host [admin]") -eq ""){$conjurUser="admin"}else{$conjurUser}
+if (($conjurUser = Read-Host -Prompt "Enter the Conjur username with permissions to add a host [admin]") -eq "") { $conjurUser = "admin" }else { $conjurUser }
 #Specify Conjur User Password
-Do{$conjurUserPassword = Read-Host -Prompt "Enter the Conjur User's Password" -AsSecureString}Until($conjurUserPassword.Length -ge 1)
+Do { $conjurUserPassword = Read-Host -Prompt "Enter the Conjur User's Password" -AsSecureString }Until($conjurUserPassword.Length -ge 1)
 #Specify Conjur Install Path
-if(($synchronizerInstallPath = Read-Host -Prompt "Specify Vault-Conjur Synchronizer installation target path [C:\Program Files\CyberArk\Synchronizer]") -eq ""){$synchronizerInstallPath="C:\Program Files\CyberArk\Synchronizer"}else{$synchronizerInstallPath}
+if (($synchronizerInstallPath = Read-Host -Prompt "Specify Vault-Conjur Synchronizer installation target path [C:\Program Files\CyberArk\Synchronizer]") -eq "") { $synchronizerInstallPath = "C:\Program Files\CyberArk\Synchronizer" }else { $synchronizerInstallPath }
 #specify Conjur DNS Name
-Do{$conjurServerDNS = Read-Host -Prompt "Conjur server hostname (and optional port in the format of hostname[:port])"}Until($conjurServerDNS.Length -ge 1)
+Do { $conjurServerDNS = Read-Host -Prompt "Conjur server hostname (and optional port in the format of hostname[:port])" }Until($conjurServerDNS.Length -ge 1)
 #Specify CyberArk Vault Name
-if(($vaultName = Read-Host -Prompt "Enter the CyberArk Vault Name [epv]") -eq ""){$vaultName="epv"}else{$vaultName}
+if (($vaultName = Read-Host -Prompt "Enter the CyberArk Vault Name [epv]") -eq "") { $vaultName = "epv" }else { $vaultName }
 #specify IP Address of EPV Vault
-Do{$vaultIPAddress = Read-Host -Prompt "Enter the CyberArk Vault IP Address"}Until($vaultIPAddress -match '^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')
+Do { $vaultIPAddress = Read-Host -Prompt "Enter the CyberArk Vault IP Address" }Until($vaultIPAddress -match '^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')
 # Specify Vault port. By default 1858 
-if(($vaultPort = Read-Host -Prompt "Enter the CyberArk Vault Port [1858]") -eq ""){$vaultPort="1858"}else{$vaultPort}
+if (($vaultPort = Read-Host -Prompt "Enter the CyberArk Vault Port [1858]") -eq "") { $vaultPort = "1858" }else { $vaultPort }
 #Specify Conjur Account Name
-Do{$conjurAccountName = Read-Host -Prompt "Enter the Conjur Account Name"}Until($conjurAccountName.Length -ge 1)
+Do { $conjurAccountName = Read-Host -Prompt "Enter the Conjur Account Name" }Until($conjurAccountName.Length -ge 1)
 
 #now create a cred file for the conjur user.
 $installFolderPath = Get-ChildItem -Include Installation -Recurse -Directory
 $conjurCredFileDestination = $installFolderPath.FullName + "ConjurAdminCredFile.xml"
-$conjurCredFile = New-Object System.Management.Automation.PSCredential -ArgumentList $conjurUser,$conjurUserPassword
+$conjurCredFile = New-Object System.Management.Automation.PSCredential -ArgumentList $conjurUser, $conjurUserPassword
 $conjurCredFile | Export-Clixml $conjurCredFileDestination
 #$conjurCredFileLocation = Get-ChildItem -Name ConjurAdminCredFile.xml -Path $ScriptLocation -Recurse
 
@@ -847,29 +958,29 @@ $newIniFile | Out-IniFile -FilePath $silentIniFile -Force
 #endregion
 
 #region [Run Silet Synchronizer Installation]
-if($DisableSSLVerify -eq $true){[System.Net.ServicePointManager]::ServerCertificateValidationCallback = $null}
+if ($DisableSSLVerify -eq $true) { [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $null }
 
-Get-ChildItem -Recurse -Name V5SynchronizerInstallation.ps1 -File -Path $ScriptLocation | ForEach-Object{&$_ -silent}
+Get-ChildItem -Recurse -Name V5SynchronizerInstallation.ps1 -File -Path $ScriptLocation | ForEach-Object { &$_ -silent }
 
 #endregion
 
 #region [Create Conjur Host in CYBR]
 
-if($DisableSSLVerify -eq $true){[System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $DisableSSLVerify }}
+if ($DisableSSLVerify -eq $true) { [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $DisableSSLVerify } }
 
 try {
-#Future Feature - Search for Account before adding. 
+    #Future Feature - Search for Account before adding. 
     $conjurHostCredentialsPath = Get-ChildItem -Name synchronizerConjurHost.xml -File -Path $ScriptLocation -Recurse
     $conjurHostCredentials = Import-Clixml -Path $conjurHostCredentialsPath
 
-    $newAccountBody = @{ platformId="ConjurHost";safeName="ConjurSync";secretType="password";secret=$conjurHostCredentials.GetNetworkCredential().password;platformAccountProperties= @{ ConjurAccount=$conjurAccountName; HostName=$conjurHostCredentials.UserName; ApplianceURL="https://"+$conjurServerDNS }} | ConvertTo-Json
-        if ($null -ne $(Invoke-Rest -Command Post -URI $API_Accounts -Header $g_LogonHeader -Body $newAccountBody)) {
+    $newAccountBody = @{ platformId = "ConjurHost"; safeName = "ConjurSync"; secretType = "password"; secret = $conjurHostCredentials.GetNetworkCredential().password; platformAccountProperties = @{ ConjurAccount = $conjurAccountName; HostName = $conjurHostCredentials.UserName; ApplianceURL = "https://" + $conjurServerDNS } } | ConvertTo-Json
+    if ($null -ne $(Invoke-Rest -Command Post -URI $API_Accounts -Header $g_LogonHeader -Body $newAccountBody)) {
                     
-            Add-LogMsg -type Info -MSG "Conjur Host $($conjurHostCredentials.Username) successfully added to CyberArk EPV."
-        } 
-        else {
-            Add-LogMsg -type Error -MSG "Conjur Host $($conjurHostCredentials.Username) could not be created in CyberArk EPV."
-        }
+        Add-LogMsg -type Info -MSG "Conjur Host $($conjurHostCredentials.Username) successfully added to CyberArk EPV."
+    } 
+    else {
+        Add-LogMsg -type Error -MSG "Conjur Host $($conjurHostCredentials.Username) could not be created in CyberArk EPV."
+    }
 }
 catch {
     Add-LogMsg -type Error -MSG $_.Exception
@@ -882,7 +993,7 @@ catch {
 #Create Cred file for Conjur Synchronizer Vault User
 
 $credFilePath = $synchronizerInstallPath + "\Vault\VaultConjurSynchronizerUser.cred"
-Get-ChildItem -Name CreateCredFile.exe -File -Path $ScriptLocation -Recurse | ForEach-Object{&$_ $credFilePath Password /username $vaultSyncUserName /password $vaultUserInitialPassword }
+Get-ChildItem -Name CreateCredFile.exe -File -Path $ScriptLocation -Recurse | ForEach-Object { &$_ $credFilePath Password /username $vaultSyncUserName /password $vaultUserInitialPassword }
 
 Start-Service -Name CyberArkVaultConjurSynchronizer
 
