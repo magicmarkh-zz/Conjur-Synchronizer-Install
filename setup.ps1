@@ -713,7 +713,7 @@ try {
                         Value = $true
                     },
                     @{Key     = "InitiateCPMAccountManagementOperations"
-                        Value = $true
+                        Value = $false
                     },
                     @{Key     = "SpecifyNextAccountContent"
                         Value = $false
